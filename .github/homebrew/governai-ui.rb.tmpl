@@ -1,0 +1,20 @@
+class GovernaiUi < Formula
+  desc "GovernAI workflow builder CLI/TUI"
+  homepage "{{HOMEPAGE}}"
+  url "https://files.pythonhosted.org/packages/source/g/governai-ui/governai_ui-{{VERSION}}.tar.gz"
+  sha256 "{{SHA256}}"
+
+  depends_on "python@3.12"
+
+  def install
+    venv = libexec/"venv"
+    system "python3.12", "-m", "venv", venv
+    system venv/"bin/pip", "install", "--upgrade", "pip", "setuptools", "wheel"
+    system venv/"bin/pip", "install", buildpath
+    bin.install_symlink venv/"bin/governai-ui"
+  end
+
+  test do
+    assert_match "usage", shell_output("#{bin}/governai-ui --help")
+  end
+end
