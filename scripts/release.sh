@@ -45,13 +45,11 @@ fi
 "${ROOT_DIR}/scripts/update_formula.sh"
 
 git add backend/pyproject.toml Formula/governai-ui.rb
-if git diff --cached --quiet; then
-  echo "No release file changes detected for v${VERSION}" >&2
-  exit 1
+if ! git diff --cached --quiet; then
+  git commit -m "release: v${VERSION}"
 fi
 
-git commit -m "release: v${VERSION}"
-git tag "v${VERSION}"
+git tag -a "v${VERSION}" -m "v${VERSION}"
 git push origin HEAD --follow-tags
 
 echo "Release v${VERSION} pushed."

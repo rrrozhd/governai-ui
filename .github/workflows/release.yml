@@ -66,6 +66,8 @@ jobs:
       name: pypi
     permissions:
       id-token: write
+    env:
+      PYPI_API_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
     steps:
       - name: Download dist artifacts
         uses: actions/download-artifact@v4
@@ -74,14 +76,14 @@ jobs:
           path: dist
 
       - name: Publish to PyPI via token
-        if: ${{ secrets.PYPI_API_TOKEN != '' }}
+        if: ${{ env.PYPI_API_TOKEN != '' }}
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           packages-dir: dist
-          password: ${{ secrets.PYPI_API_TOKEN }}
+          password: ${{ env.PYPI_API_TOKEN }}
 
       - name: Publish to PyPI via trusted publishing
-        if: ${{ secrets.PYPI_API_TOKEN == '' }}
+        if: ${{ env.PYPI_API_TOKEN == '' }}
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           packages-dir: dist
@@ -109,7 +111,7 @@ jobs:
     needs:
       - build
       - publish_pypi
-    if: ${{ vars.HOMEBREW_TAP_REPO != '' && secrets.HOMEBREW_TAP_TOKEN != '' }}
+    if: ${{ vars.HOMEBREW_TAP_REPO != '' }}
     env:
       VERSION: ${{ needs.build.outputs.version }}
       SDIST_SHA256: ${{ needs.build.outputs.sdist_sha256 }}
