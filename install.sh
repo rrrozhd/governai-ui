@@ -7,17 +7,31 @@ BIN_DIR="${HOME}/.local/bin"
 SHIM_PATH="${BIN_DIR}/governai-ui"
 
 # Override to install from source repo, e.g.:
-# GOVERNAI_UI_INSTALL_SPEC='git+https://github.com/<org>/<repo>.git#subdirectory=backend'
+# GOVERNAI_UI_INSTALL_SPEC='git+https://github.com/rrrozhd/governai-ui.git#subdirectory=backend'
 INSTALL_SPEC="${GOVERNAI_UI_INSTALL_SPEC:-governai-ui}"
 
-if ! command -v python3 >/dev/null 2>&1; then
-  echo "python3 is required but not found in PATH." >&2
+if command -v python3.12 >/dev/null 2>&1; then
+  PYTHON_BIN="python3.12"
+elif command -v python3 >/dev/null 2>&1; then
+  PYTHON_BIN="python3"
+else
+  echo "Python 3.12+ is required but no python interpreter was found in PATH." >&2
   exit 1
 fi
 
+PYTHON_VERSION="$("${PYTHON_BIN}" -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")')"
+case "${PYTHON_VERSION}" in
+  3.12|3.13|3.14|3.15)
+    ;;
+  *)
+    echo "Python 3.12+ is required. Found ${PYTHON_BIN} ${PYTHON_VERSION}." >&2
+    exit 1
+    ;;
+esac
+
 mkdir -p "${APP_DIR}" "${BIN_DIR}"
 
-python3 -m venv "${VENV_DIR}"
+"${PYTHON_BIN}" -m venv "${VENV_DIR}"
 "${VENV_DIR}/bin/python" -m pip install --upgrade pip wheel setuptools
 "${VENV_DIR}/bin/python" -m pip install --upgrade "${INSTALL_SPEC}"
 

@@ -21,9 +21,9 @@ Workflow Builder UI + API for [`governai`](../governai).
 
 ```bash
 cd backend
-/Users/dondoe/coding/governai/.venv/bin/python -m ensurepip --upgrade
-/Users/dondoe/coding/governai/.venv/bin/python -m pip install -e '.[dev]'
-/Users/dondoe/coding/governai/.venv/bin/uvicorn app.main:app --reload --port 8000
+python3.12 -m ensurepip --upgrade
+python3.12 -m pip install -e '.[dev]'
+python3.12 -m uvicorn app.main:app --reload --port 8000
 ```
 
 ## Install & run
@@ -31,22 +31,22 @@ cd backend
 ### Option A: pip install
 
 ```bash
-python3 -m pip install --upgrade governai-ui
+python3.12 -m pip install --upgrade governai-ui
 governai-ui launch
 ```
 
 ### Option B: curl installer
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/<org>/<repo>/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/rrrozhd/governai-ui/main/install.sh | bash
 governai-ui launch
 ```
 
-To install from your repo/subdirectory instead of PyPI:
+To install directly from this repository source instead of PyPI:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/<org>/<repo>/main/install.sh | \\
-  GOVERNAI_UI_INSTALL_SPEC='git+https://github.com/<org>/<repo>.git#subdirectory=backend' bash
+curl -fsSL https://raw.githubusercontent.com/rrrozhd/governai-ui/main/install.sh | \\
+  GOVERNAI_UI_INSTALL_SPEC='git+https://github.com/rrrozhd/governai-ui.git#subdirectory=backend' bash
 ```
 
 ### Option C: Homebrew formula
@@ -54,14 +54,14 @@ curl -fsSL https://raw.githubusercontent.com/<org>/<repo>/main/install.sh | \\
 Install directly from this repo's formula:
 
 ```bash
-brew install --formula https://raw.githubusercontent.com/<org>/<repo>/main/Formula/governai-ui.rb
+brew install --formula https://raw.githubusercontent.com/rrrozhd/governai-ui/main/Formula/governai-ui.rb
 governai-ui launch
 ```
 
-Or if you maintain a tap repo (for example `org/homebrew-governai-ui`):
+Or use the published tap:
 
 ```bash
-brew tap <org>/governai-ui
+brew tap rrrozhd/governai-ui
 brew install governai-ui
 ```
 
@@ -71,7 +71,7 @@ After backend install, use:
 
 ```bash
 cd backend
-/Users/dondoe/coding/governai/.venv/bin/governai-ui launch
+governai-ui launch
 ```
 
 Available commands:
@@ -119,7 +119,7 @@ Backend:
 
 ```bash
 cd backend
-/Users/dondoe/coding/governai/.venv/bin/python -m pytest -q
+python3.12 -m pytest -q
 ```
 
 Frontend:

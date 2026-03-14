@@ -42,10 +42,10 @@ elif git -C "${ROOT_DIR}" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
   elif [[ "${ORIGIN_URL}" =~ ^git@github.com:(.*)$ ]]; then
     HOMEPAGE="https://github.com/${BASH_REMATCH[1]%.git}"
   else
-    HOMEPAGE="https://github.com/<org>/<repo>"
+    HOMEPAGE="https://github.com/rrrozhd/governai-ui"
   fi
 else
-  HOMEPAGE="https://github.com/<org>/<repo>"
+  HOMEPAGE="https://github.com/rrrozhd/governai-ui"
 fi
 
 mkdir -p "$(dirname "${OUTPUT_PATH}")"
