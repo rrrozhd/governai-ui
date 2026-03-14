@@ -4,12 +4,13 @@ import pytest
 from fastapi import FastAPI
 from httpx import ASGITransport, AsyncClient
 
-from governai import InMemoryAuditEmitter, InMemoryRunStore
+from governai import InMemoryAuditEmitter, InMemoryInterruptStore, InMemoryRunStore
 
 from app.api import router
 from app.catalog import build_catalog
 from app.drafts import DraftService
 from app.execution import ExecutionService
+from app.models import ResumeApprovalPayload, ResumeInterruptPayload
 from app.planner import PlannerService
 from app.services import ServiceContainer
 from app.settings import Settings
@@ -225,9 +226,90 @@ flow restart_safe {
     )
     state_b = await exec_b.get_state(state_a.run_id)
     events_b = await exec_b.get_events(run_id=state_a.run_id, after=0)
+    runs_b = await exec_b.list_runs()
 
     assert state_b.run_id == state_a.run_id
     assert events_b.events
+    assert runs_b[0].draft_id == version.draft_id
+    assert runs_b[0].version_id == version.version_id
+
+
+@pytest.mark.asyncio
+async def test_restart_safe_interrupt_resume_with_shared_stores() -> None:
+    settings = Settings(use_redis=False)
+    catalog = build_catalog()
+    drafts = DraftService()
+
+    interrupt_dsl = """
+flow restart_interrupt {
+  entry: ingest;
+  step ingest: tool wf.ingest -> compose;
+  step compose: tool wf.compose -> gate;
+  step gate: tool wf.request_review -> send;
+  step send: tool wf.send approval true -> end;
+}
+"""
+    validation = drafts.validate_dsl(dsl=interrupt_dsl, catalog=catalog)
+    version = drafts.create_or_update(session_id="s-2", dsl=interrupt_dsl, validation=validation)
+
+    shared_run_store = InMemoryRunStore()
+    shared_audit = InMemoryAuditEmitter()
+    shared_interrupts = InMemoryInterruptStore()
+
+    exec_a = ExecutionService(
+        settings=settings,
+        catalog=catalog,
+        drafts=drafts,
+        run_store=shared_run_store,
+        audit_emitter=shared_audit,
+        interrupt_store=shared_interrupts,
+    )
+    waiting = await exec_a.run_version(version=version, input_payload={"issue": "complex security incident"})
+
+    assert waiting.status == "WAITING_INTERRUPT"
+    assert waiting.pending_interrupt is not None
+
+    exec_b = ExecutionService(
+        settings=settings,
+        catalog=catalog,
+        drafts=drafts,
+        run_store=shared_run_store,
+        audit_emitter=shared_audit,
+        interrupt_store=shared_interrupts,
+    )
+    recovered = await exec_b.get_state(waiting.run_id)
+
+    assert recovered.pending_interrupt is not None
+    assert recovered.pending_interrupt["interrupt_id"] == waiting.pending_interrupt["interrupt_id"]
+
+    after_interrupt = await exec_b.resume(
+        run_id=waiting.run_id,
+        payload=ResumeInterruptPayload(
+            type="interrupt",
+            interrupt_id=recovered.pending_interrupt["interrupt_id"],
+            epoch=recovered.pending_interrupt["epoch"],
+            response={
+                "issue": "complex security incident",
+                "approved": True,
+                "objective": "Resolve incident",
+            },
+        ),
+    )
+    assert after_interrupt.status == "WAITING_APPROVAL"
+
+    exec_c = ExecutionService(
+        settings=settings,
+        catalog=catalog,
+        drafts=drafts,
+        run_store=shared_run_store,
+        audit_emitter=shared_audit,
+        interrupt_store=shared_interrupts,
+    )
+    completed = await exec_c.resume(
+        run_id=waiting.run_id,
+        payload=ResumeApprovalPayload(type="approval", decision="approve", decided_by="tester"),
+    )
+    assert completed.status == "COMPLETED"
 
 
 @pytest.mark.asyncio
