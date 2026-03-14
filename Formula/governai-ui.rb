@@ -1,8 +1,8 @@
 class GovernaiUi < Formula
   desc "GovernAI workflow builder CLI/TUI"
   homepage "https://github.com/rrrozhd/governai-ui"
-  url "https://files.pythonhosted.org/packages/source/g/governai-ui/governai_ui-0.1.0.tar.gz"
-  sha256 "117778f2c1d2d8445a4447e89176f1ce13417fe404e36165b87ce44bb1e114bb"
+  url "https://files.pythonhosted.org/packages/source/g/governai-ui/governai_ui-0.1.1.tar.gz"
+  sha256 "34412dda480af5bd954088830e0564646691d9037644d9f7e19413f1dd93c9fc"
 
   depends_on "python@3.12"
 
